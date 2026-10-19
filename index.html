@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.5">
+    <title>AI 語意驅動皮影戲人偶外觀變換</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #1e1e2f;
+            color: #fff;
+            text-align: center;
+            margin: 0;
+            padding: 30px;
+        }
+        .control-panel {
+            background: #2a2a40;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 280px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background: #111;
+            color: #fff;
+        }
+        button {
+            padding: 10px 18px;
+            font-size: 16px;
+            margin-left: 6px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .btn-send { background: #4f46e5; color: white; }
+        .btn-mic { background: #e11d48; color: white; }
+        
+        #status {
+            font-size: 18px;
+            color: #38bdf8;
+            margin: 15px 0;
+            min-height: 25px;
+        }
+
+        #stage {
+            width: 450px;
+            height: 450px;
+            border: 3px solid #444;
+            margin: 0 auto;
+            background: #111;
+            border-radius: 15px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* SVG 樣式過渡效果 */
+        svg path, svg circle, svg line {
+            transition: all 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>皮影戲人偶外觀即時變換系統</h1>
+    
+    <div class="control-panel">
+        <input type="text" id="textInput" placeholder="輸入描述：例如 穿紅甲的將軍、拿法杖的老者" onkeypress="if(event.key==='Enter') handleInput()">
+        <button class="btn-send" onclick="handleInput()">轉換外觀</button>
+        <button class="btn-mic" onclick="startVoice()">🎤 語音輸入</button>
+    </div>
+
+    <div id="status">請輸入指令以改變人偶外觀</div>
+
+    <div id="stage">
+        <!-- 可動態改變外觀的 SVG 皮影戲人偶 -->
+        <svg width="180" height="350" viewBox="0 0 100 220" id="puppetSvg">
+            <!-- 頭部裝飾（冠冕） -->
+            <path id="puppetCrown" d="M 40 10 L 50 2 L 60 10 Z" fill="#fbbf24"/>
+            <!-- 頭部 -->
+            <circle id="puppetHead" cx="50" cy="28" r="18" fill="#d97706" stroke="#fbbf24" stroke-width="2"/>
+            <!-- 身體/服裝 -->
+            <path id="puppetBody" d="M 35 48 L 65 48 L 75 130 L 25 130 Z" fill="#b45309" stroke="#fbbf24" stroke-width="2"/>
+            <!-- 左手 -->
+            <line id="puppetLeftArm" x1="35" y1="58" x2="15" y2="105" stroke="#fbbf24" stroke-width="4" stroke-linecap="round"/>
+            <!-- 右手（武器/道具） -->
+            <line id="puppetRightArm" x1="65" y1="58" x2="85" y2="95" stroke="#fbbf24" stroke-width="4" stroke-linecap="round"/>
+            <path id="puppetWeapon" d="M 85 95 L 95 80 L 92 105 Z" fill="#cbd5e1"/>
+            <!-- 雙腿 -->
+            <line x1="40" y1="130" x2="32" y2="200" stroke="#fbbf24" stroke-width="4" stroke-linecap="round"/>
+            <line x1="60" y1="130" x2="68" y2="200" stroke="#fbbf24" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+    </div>
+
+<script>
+    function handleInput() {
+        const text = document.getElementById('textInput').value.trim();
+        if(!text) return;
+        updatePuppetAppearance(text);
+    }
+
+    function updatePuppetAppearance(inputStr) {
+        const statusEl = document.getElementById('status');
+        
+        // 取得 SVG 的各個部位元件
+        const crown = document.getElementById('puppetCrown');
+        const head = document.getElementById('puppetHead');
+        const body = document.getElementById('puppetBody');
+        const weapon = document.getElementById('puppetWeapon');
+
+        statusEl.innerText = `正在解析：「${inputStr}」 $\rightarrow$ 改變人偶外觀`;
+
+        // 依據關鍵字改變外觀屬性（顏色、形狀、裝備）
+        if (inputStr.includes('紅') || inputStr.includes('將軍') || inputStr.includes('戰')) {
+            statusEl.innerText = '外觀變換：【戰鬥將軍風】（紅甲、威武冠冕、利刃）';
+            body.setAttribute('fill', '#991b1b'); // 紅色戰甲
+            crown.setAttribute('d', 'M 35 12 L 50 0 L 65 12 Z'); // 較大的將軍冠
+            crown.setAttribute('fill', '#f87171');
+            weapon.setAttribute('d', 'M 85 95 L 105 75 L 98 102 Z'); // 變大柄長矛/刀
+            weapon.setAttribute('fill', '#e2e8f0');
+        } 
+        else if (inputStr.includes('藍') || inputStr.includes('書生') || inputStr.includes('文')) {
+            statusEl.innerText = '外觀變換：【文人雅士風】（青衫、儒冠、摺扇）';
+            body.setAttribute('fill', '#1e3a8a'); // 青藍色長衫
+            crown.setAttribute('d', 'M 42 12 L 50 5 L 58 12 Z'); // 書生平帽
+            crown.setAttribute('fill', '#60a5fa');
+            weapon.setAttribute('d', 'M 82 95 Q 92 85 98 95 Z'); // 改成扇子形狀
+            weapon.setAttribute('fill', '#93c5fd');
+        } 
+        else if (inputStr.includes('黑') || inputStr.includes('夜行') || inputStr.includes('刺客')) {
+            statusEl.innerText = '外觀變換：【暗夜刺客風】（夜行衣、蒙面、短匕首）';
+            body.setAttribute('fill', '#18181b'); // 全黑服裝
+            crown.setAttribute('d', 'M 38 12 L 50 8 L 62 12 Z'); 
+            crown.setAttribute('fill', '#52525b');
+            weapon.setAttribute('d', 'M 85 95 L 90 85 L 88 100 Z'); // 短匕首
+            weapon.setAttribute('fill', '#a1a1aa');
+        } 
+        else if (inputStr.includes('金') || inputStr.includes('神') || inputStr.includes('王')) {
+            statusEl.innerText = '外觀變換：【華麗神祇風】（金甲、華冠、寶杖）';
+            body.setAttribute('fill', '#854d0e'); // 金黃華服
+            crown.setAttribute('d', 'M 30 15 L 50 -2 L 70 15 Z'); // 浮誇大金冠
+            crown.setAttribute('fill', '#facc15');
+            weapon.setAttribute('d', 'M 85 95 L 95 65 L 92 105 Z'); // 權杖
+            weapon.setAttribute('fill', '#fde047');
+        } 
+        else {
+            statusEl.innerText = '維持預設外觀（可輸入：紅將軍、藍書生、黑刺客、金神祇）';
+            body.setAttribute('fill', '#b45309');
+            crown.setAttribute('d', 'M 40 10 L 50 2 L 60 10 Z');
+            crown.setAttribute('fill', '#fbbf24');
+            weapon.setAttribute('d', 'M 85 95 L 95 80 L 92 105 Z');
+            weapon.setAttribute('fill', '#cbd5e1');
+        }
+    }
+
+    function startVoice() {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert('您的瀏覽器不支援語音辨識，請使用 Google Chrome。');
+            return;
+        }
+        
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'zh-TW';
+        
+        recognition.onresult = function(event) {
+            const speechToText = event.results[0][0].transcript;
+            document.getElementById('textInput').value = speechToText;
+            updatePuppetAppearance(speechToText);
+        };
+        
+        recognition.start();
+        document.getElementById('status').innerText = '🎤 正在聆聽，請說出想要的造型...';
+    }
+</script>
+
+</body>
+</html>
